@@ -20,7 +20,6 @@ package eu.peppol.outbound;
 
 import eu.peppol.BusDoxProtocol;
 import eu.peppol.outbound.transmission.*;
-import eu.peppol.security.CommonName;
 import eu.peppol.smp.SmpModule;
 import eu.peppol.util.GlobalState;
 import org.testng.annotations.BeforeMethod;
@@ -28,7 +27,6 @@ import org.testng.annotations.Guice;
 import org.testng.annotations.Test;
 
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import static org.testng.Assert.*;
@@ -42,7 +40,6 @@ import static org.testng.Assert.*;
 public class SendSampleInvoiceTestIT {
 
     public static final String SAMPLE_DOCUMENT = "peppol-bis-invoice-sbdh.xml";
-    public static final String EHF_NO_SBDH = "BII04_T10_EHF-v1.5_invoice.xml";
 
     OxalisOutboundModule oxalisOutboundModule;
     TransmissionRequestBuilder builder;
@@ -86,47 +83,6 @@ public class SendSampleInvoiceTestIT {
         assertEquals(transmissionResponse.getCommonName().toString(), "peppol-APP_1000000006");
 
     }
-
-
-    /**
-     * This will not work if you have set up your oxalis-persistence extension to use
-     * a JNDI data source.
-     *
-     * This could be fixed by changing the oxalis-global.properties to not use a custom persistence
-     * module for incoming messages. Needs to be fixed sooner or later. -- Steinar, Dec 1, 2013
-     *
-     * @throws MalformedURLException
-     */
-    @Test()
-    public void sendSingleInvoiceToLocalEndPointUsingSTART() throws MalformedURLException {
-
-        InputStream is = SendSampleInvoiceTestIT.class.getClassLoader().getResourceAsStream(EHF_NO_SBDH);
-        assertNotNull(is, EHF_NO_SBDH + " not found in the class path");
-
-        assertNotNull(oxalisOutboundModule);
-        assertNotNull(builder);
-
-        builder.payLoad(is);
-        builder.overrideEndpointForStartProtocol(new URL("https://localhost:8443/oxalis/accessPointService"));
-
-        TransmissionRequest transmissionRequest = builder.build();
-        assertNotNull(transmissionRequest);
-
-        Transmitter transmitter = oxalisOutboundModule.getTransmitter();
-
-        // Transmits our transmission request
-        TransmissionResponse transmissionResponse = transmitter.transmit(transmissionRequest);
-        assertNotNull(transmissionResponse);
-        assertNotNull(transmissionResponse.getTransmissionId());
-        assertNotNull(transmissionResponse.getStandardBusinessHeader());
-        assertEquals(transmissionResponse.getStandardBusinessHeader().getRecipientId().stringValue(), "0088:1234567987654");
-        assertEquals(transmissionResponse.getURL().toExternalForm(), "https://localhost:8443/oxalis/accessPointService");
-        assertEquals(transmissionResponse.getProtocol(), BusDoxProtocol.START);
-        assertEquals(transmissionResponse.getCommonName(), new CommonName("")); // not used for START
-
-    }
-
-    // TODO: implement integration test for retrieval of the WSDL
 
     // TODO: implement integration test for retrieval of statistics
 

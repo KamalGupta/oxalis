@@ -143,7 +143,6 @@
                                     <filtering>true</filtering>
                                     <includes>
                                         <include>**/*.xml</include>
-                                        <include>**/*.wsdl</include>
                                     </includes>
                                 </resource>
                             </webResources>
@@ -156,28 +155,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.jvnet.jax-ws-commons</groupId>
-                <artifactId>jaxws-maven-plugin</artifactId>
-                <version>2.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>wsimport</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <wsdlDirectory>${basedir}/src/main/webapp/WEB-INF/wsdl/accessPointService</wsdlDirectory>
-                    <wsdlFiles>
-                        <wsdlFile>${wsdl}.wsdl</wsdlFile>
-                    </wsdlFiles>
-                    <extension>true</extension>
-                    <packageName>org.w3._2009._02.ws_tra</packageName>
-                    <sei />
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.cargo</groupId>

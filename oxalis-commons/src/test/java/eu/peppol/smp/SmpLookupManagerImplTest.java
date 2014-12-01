@@ -43,7 +43,7 @@ import java.util.List;
 import static org.testng.Assert.*;
 
 /**
- * @author  nigel
+ * @author nigel
  * @author thore
  */
 @Test(groups = {"integration"})
@@ -61,17 +61,26 @@ public class SmpLookupManagerImplTest {
     }
 
     @Test
-    public void testSomeKnownEndpoints() throws Throwable {
+    public void testSomeKnownEndpoints() throws Exception {
 
         URL endpointAddress;
+
         endpointAddress = smpLookupManager.getEndpointAddress(WellKnownParticipant.U4_TEST, invoice);
         assertEquals(endpointAddress.toExternalForm(), "https://ap.unit4.com/oxalis/as2");
 
-        endpointAddress = smpLookupManager.getEndpointAddress(alfa1lab, invoice);
-        assertEquals(endpointAddress.toExternalForm(), "https://start-ap.alfa1lab.com:443/accessPointService");
-
         endpointAddress = smpLookupManager.getEndpointAddress(helseVest, invoice);
         assertEquals(endpointAddress.toExternalForm(), "https://peppolap.ibxplatform.net/as2/as2");
+
+    }
+
+    @Test(expectedExceptions = IllegalStateException.class,
+            expectedExceptionsMessageRegExp = "No endpoints with supported protocols found, unable to determine optimal endpoint.")
+    public void testEndpointWithUnsupportedProtocolsOnly() throws Exception {
+
+        URL endpointAddress;
+
+        endpointAddress = smpLookupManager.getEndpointAddress(alfa1lab, invoice);
+        assertEquals(endpointAddress.toExternalForm(), "https://start-ap.alfa1lab.com:443/accessPointService");
 
     }
 
@@ -108,8 +117,8 @@ public class SmpLookupManagerImplTest {
     @Test
     public void test02() throws Throwable {
         X509Certificate endpointCertificate;
-        endpointCertificate = smpLookupManager.getEndpointCertificate(alfa1lab, invoice);
-        assertEquals(endpointCertificate.getSerialNumber().toString(), "56025519523792163866580293261663838570");
+        endpointCertificate = smpLookupManager.getEndpointCertificate(WellKnownParticipant.U4_TEST, invoice);
+        assertEquals(endpointCertificate.getSerialNumber().toString(), "56473347106972082789615706767319602767");
     }
 
     /**
@@ -180,7 +189,7 @@ public class SmpLookupManagerImplTest {
         assertNotNull(peppolEndpointData.getCommonName(), "CN attribute of certificate not provided");
     }
 
-    @Test()
+    @Test
     public void testSmlHostnameOverride() {
         GlobalConfiguration configuration = GlobalConfiguration.getInstance();
         String overrideSml = "sml.difi.no";
@@ -198,7 +207,7 @@ public class SmpLookupManagerImplTest {
         }
     }
 
-    @Test()
+    @Test
     public void parseSmpResponseWithTwoEntries() throws ParserConfigurationException, JAXBException, SAXException, IOException {
 
         final InputStream inputStream = SmpLookupManagerImplTest.class.getClassLoader().getResourceAsStream("smp-response-with-as2.xml");
@@ -243,8 +252,8 @@ public class SmpLookupManagerImplTest {
 
     @Test
     public void makeSureEndpointsAreStillEqual() throws Exception {
-        SmpLookupManager.PeppolEndpointData e1 = new SmpLookupManager.PeppolEndpointData(new URL("https://localhost:8080/oxalis/as2"), BusDoxProtocol.START);
-        SmpLookupManager.PeppolEndpointData e2 = new SmpLookupManager.PeppolEndpointData(new URL("https://localhost:8080/oxalis/as2"), BusDoxProtocol.START, null);
+        SmpLookupManager.PeppolEndpointData e1 = new SmpLookupManager.PeppolEndpointData(new URL("https://localhost:8080/oxalis/as2"), BusDoxProtocol.AS2);
+        SmpLookupManager.PeppolEndpointData e2 = new SmpLookupManager.PeppolEndpointData(new URL("https://localhost:8080/oxalis/as2"), BusDoxProtocol.AS2, null);
         assertTrue(e1.equals(e1));
         assertTrue(e2.equals(e2));
         assertEquals(e1, e2);
@@ -260,7 +269,7 @@ public class SmpLookupManagerImplTest {
     @Test
     public void makeSureEndpointsDontMatchProtocol() throws Exception {
         SmpLookupManager.PeppolEndpointData e1 = new SmpLookupManager.PeppolEndpointData(new URL("https://localhost:8080/oxalis/as2"), BusDoxProtocol.AS2, new CommonName("cn"));
-        SmpLookupManager.PeppolEndpointData e2 = new SmpLookupManager.PeppolEndpointData(new URL("https://localhost:8080/oxalis/as2"), BusDoxProtocol.START, new CommonName("not-equal"));
+        SmpLookupManager.PeppolEndpointData e2 = new SmpLookupManager.PeppolEndpointData(new URL("https://localhost:8080/oxalis/as2"), BusDoxProtocol.AS2, new CommonName("not-equal"));
         assertNotEquals(e1, e2);
     }
 

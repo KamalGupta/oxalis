@@ -12,10 +12,10 @@ import static org.testng.Assert.assertEquals;
  */
 public class BusDoxProtocolTest {
 
-    @Test
-    public void testInstanceFrom() throws Exception {
+    @Test(expectedExceptions = IllegalStateException.class,
+            expectedExceptionsMessageRegExp = "Unknown protocol name : busdox-transport-start")
+    public void testInstanceFromForSTART() throws Exception {
         BusDoxProtocol busDoxProtocol = BusDoxProtocol.instanceFrom("busdox-transport-start");
-        assertEquals(busDoxProtocol, BusDoxProtocol.START);
     }
 
     @Test

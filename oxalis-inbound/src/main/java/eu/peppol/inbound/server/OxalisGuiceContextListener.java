@@ -34,18 +34,17 @@ import eu.peppol.inbound.guice.RepositoryModule;
  */
 public class OxalisGuiceContextListener extends GuiceServletContextListener {
 
-
     @Override
     protected Injector getInjector() {
         return Guice.createInjector(
-                new RepositoryModule(),
-                new ServletModule(){
-
-                    @Override
-                    protected void configureServlets() {
-                        serve("/as2*").with(AS2Servlet.class);
-                    }
+            new RepositoryModule(),
+            new ServletModule() {
+                @Override
+                protected void configureServlets() {
+                    serve("/as2*").with(AS2Servlet.class);
                 }
+            }
         );
     }
+
 }

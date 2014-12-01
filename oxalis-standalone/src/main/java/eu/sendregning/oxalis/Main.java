@@ -2,7 +2,6 @@ package eu.sendregning.oxalis;
 
 import com.sun.xml.ws.transport.http.client.HttpTransportPipe;
 import eu.peppol.BusDoxProtocol;
-import eu.peppol.PeppolStandardBusinessHeader;
 import eu.peppol.identifier.ParticipantId;
 import eu.peppol.identifier.PeppolDocumentTypeId;
 import eu.peppol.outbound.OxalisOutboundModule;
@@ -114,10 +113,7 @@ public class Main {
 
                 // Fetches the transmission method, which was overridden on the command line
                 BusDoxProtocol busDoxProtocol = BusDoxProtocol.instanceFrom(transmissionMethod.value(optionSet));
-                if (busDoxProtocol == BusDoxProtocol.START){
-                    // ... and gives it to the transmission request builder
-                    requestBuilder.overrideEndpointForStartProtocol(destination);
-                } else if (busDoxProtocol == BusDoxProtocol.AS2) {
+                if (busDoxProtocol == BusDoxProtocol.AS2){
                     String accessPointSystemIdentifier = destinationSystemId.value(optionSet);
                     if (accessPointSystemIdentifier == null) {
                         throw new IllegalStateException("Must specify AS2 system identifier if using AS2 protocol");

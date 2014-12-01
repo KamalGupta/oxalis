@@ -1,8 +1,16 @@
 package eu.peppol.outbound.api;
 
+import eu.peppol.identifier.ParticipantId;
 import eu.peppol.identifier.PeppolDocumentTypeIdAcronym;
 import eu.peppol.identifier.PeppolProcessTypeIdAcronym;
+import eu.peppol.outbound.OxalisOutboundModule;
+import eu.peppol.outbound.transmission.TransmissionRequest;
+import eu.peppol.outbound.transmission.TransmissionRequestBuilder;
+import eu.peppol.outbound.transmission.TransmissionResponse;
+import eu.peppol.outbound.transmission.Transmitter;
 import eu.peppol.outbound.util.Log;
+import eu.peppol.util.GlobalState;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.InputStream;
@@ -25,15 +33,23 @@ public class StressTest  {
 
     private static final long MESSAGES = 100;
     private static final int THREADS = 30;
-    protected static final String START_SERVICE_END_POINT = "https://localhost:8443/oxalis/accessPointService";
+    private static final long MEMORY_THRESHOLD = 10;
+    protected static final String OXALIS_SERVICE_END_POINT = "https://localhost:8443/oxalis/as2";
 
+    private static long lastUsage = 0;
+
+    private OxalisOutboundModule oxalisOutboundModule;
+
+    @BeforeMethod
+    public void init() {
+        GlobalState.getInstance().setTransmissionBuilderOverride(true);
+        oxalisOutboundModule = new OxalisOutboundModule();
+    }
 
     @Test(groups = {"manual"})
     public void test01() throws Exception {
 
-        final DocumentSender documentSender = new DocumentSenderBuilder().setDocumentTypeIdentifier(PeppolDocumentTypeIdAcronym.INVOICE.getDocumentTypeIdentifier())
-                .setPeppolProcessTypeId(PeppolProcessTypeIdAcronym.INVOICE_ONLY.getPeppolProcessTypeId())
-                .build();
+        assertNotNull(oxalisOutboundModule);
 
         final List<Callable<Integer>> partitions = new ArrayList<Callable<Integer>>();
 
@@ -43,7 +59,7 @@ public class StressTest  {
 
             partitions.add(new Callable<Integer>() {
                 public Integer call() throws Exception {
-                    sendDocument(documentSender);
+                    sendDocument();
                     getMemoryUsage();
                     return 1;
                 }
@@ -68,30 +84,29 @@ public class StressTest  {
         System.out.println("");
     }
 
-    private void sendDocument(DocumentSender documentSender) throws Exception {
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("logback-test.xml");
-        assertNotNull(inputStream, "Unable to locate file logback-test.xml in class path");
-
-        documentSender.sendInvoice(
-                inputStream,
-                "9908:976098897",
-                "9908:976098897",
-                new URL(START_SERVICE_END_POINT),
-                ""
-        );
-
+    @SuppressWarnings("unused")
+    private void sendDocument() throws Exception {
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("BII04_T10_EHF-v1.5_invoice.xml");
+        assertNotNull(inputStream, "Unable to locate test file in class path");
+        TransmissionRequestBuilder builder = oxalisOutboundModule.getTransmissionRequestBuilder();
+        TransmissionRequest request = builder
+            .sender(new ParticipantId("9908:976098897"))
+            .receiver(new ParticipantId("9908:810017902"))
+            .documentType(PeppolDocumentTypeIdAcronym.INVOICE.getDocumentTypeIdentifier())
+            .processType(PeppolProcessTypeIdAcronym.INVOICE_ONLY.getPeppolProcessTypeId())
+            .overrideAs2Endpoint(new URL(OXALIS_SERVICE_END_POINT), "bla-bla")
+            .payLoad(inputStream)
+            .build();
+        Transmitter transmitter = oxalisOutboundModule.getTransmitter();
+        TransmissionResponse response = transmitter.transmit(request);
         inputStream.close();
     }
-
-    private static final long MEMORY_THRESHOLD = 10;
-    private static long lastUsage = 0;
 
     /**
      * returns a String describing current memory utilization. In addition unusually large
      * changes in memory usage will be logged.
      */
     public static String getMemoryUsage() {
-
         Runtime runtime = Runtime.getRuntime();
         long freeMemory = runtime.freeMemory();
         long totalMemory = runtime.totalMemory();
@@ -100,12 +115,10 @@ public class StressTest  {
         long usedInMegabytes = usedMemory / mega;
         long totalInMegabytes = totalMemory / mega;
         String memoryStatus = usedInMegabytes + "M / " + totalInMegabytes + "M / " + (runtime.maxMemory() / mega) + "M";
-
         if (usedInMegabytes <= lastUsage - MEMORY_THRESHOLD || usedInMegabytes >= lastUsage + MEMORY_THRESHOLD) {
             Log.info("Memory usage: " + memoryStatus);
             lastUsage = usedInMegabytes;
         }
-
         return memoryStatus;
     }
 

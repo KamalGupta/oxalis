@@ -431,6 +431,8 @@ public class SmpLookupManagerImpl implements SmpLookupManager {
         try {
             SignedServiceMetadataType serviceMetadata = getServiceMetaData(participant, documentTypeIdentifier);
             return selectOptimalEndpoint(serviceMetadata);
+        } catch (IllegalStateException ex) {
+            throw ex; // rethrow
         } catch (Exception e) {
             String pid = (participant == null) ? "participant missing" : "for participant " + participant.toString();
             String did = (documentTypeIdentifier == null) ? "document type missing" : "document type " + documentTypeIdentifier.toString();
@@ -438,6 +440,9 @@ public class SmpLookupManagerImpl implements SmpLookupManager {
         }
     }
 
+    /**
+     * Analyzed the SignedServiceMetaData and returns the optimal protocol supported by Oxalis
+     */
     EndpointType selectOptimalEndpoint(SignedServiceMetadataType serviceMetadata) {
 
         // List of end points contained in the signed service meta data type
@@ -453,12 +458,17 @@ public class SmpLookupManagerImpl implements SmpLookupManager {
         Map<BusDoxProtocol, EndpointType> protocolsAndEndpointType = new HashMap<BusDoxProtocol, EndpointType>();
 
         for (EndpointType endpointType : endPointsForDocumentTypeIdentifier) {
-            BusDoxProtocol busDoxProtocol = BusDoxProtocol.instanceFrom(endpointType.getTransportProfile());
-            protocolsAndEndpointType.put(busDoxProtocol, endpointType);
+            try {
+                BusDoxProtocol busDoxProtocol = BusDoxProtocol.instanceFrom(endpointType.getTransportProfile());
+                protocolsAndEndpointType.put(busDoxProtocol, endpointType);
+            } catch (Exception ex) {
+                log.warn("Skipping endpoint type : {}", ex.getMessage());
+            }
         }
 
-        BusDoxProtocol preferredProtocol = busDoxProtocolSelectionStrategy.selectOptimalProtocol(new ArrayList<BusDoxProtocol>(protocolsAndEndpointType.keySet()));
+        if (protocolsAndEndpointType.isEmpty()) throw new IllegalStateException("No endpoints with supported protocols found, unable to determine optimal endpoint.");
 
+        BusDoxProtocol preferredProtocol = busDoxProtocolSelectionStrategy.selectOptimalProtocol(new ArrayList<BusDoxProtocol>(protocolsAndEndpointType.keySet()));
         return protocolsAndEndpointType.get(preferredProtocol);
 
     }

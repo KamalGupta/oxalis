@@ -84,14 +84,6 @@ public class TransmissionRequestBuilder {
     }
 
     /**
-     * Overrides the endpoint URL for the START transmission protocol.
-     */
-    public TransmissionRequestBuilder overrideEndpointForStartProtocol(URL url) {
-        endpointAddress = new SmpLookupManager.PeppolEndpointData(url, BusDoxProtocol.START);
-        return this;
-    }
-
-    /**
      * Overrides the endpoint URL and the AS2 System identifier for the AS2 protocol.
      * You had better know what you are doing :-)
      */
@@ -176,8 +168,6 @@ public class TransmissionRequestBuilder {
         if (BusDoxProtocol.AS2.equals(endpointAddress.getBusDoxProtocol())  && !sbdhDetected) {
             // Wraps the payload with an SBDH, as this is required for AS2
             payload = wrapPayLoadWithSBDH(new ByteArrayInputStream(payload), effectiveStandardBusinessHeader);
-        } else if (BusDoxProtocol.START.equals(endpointAddress.getBusDoxProtocol()) && sbdhDetected) {
-            throw new IllegalStateException("Payload may not contain SBDH when using the START protocol");
         }
 
         if (isTraceEnabled()) {

@@ -77,28 +77,6 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.jvnet.jax-ws-commons</groupId>
-                <artifactId>jaxws-maven-plugin</artifactId>
-                <version>2.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>wsimport</goal>
-                        </goals>
-                        <configuration>
-                            <wsdlDirectory>${basedir}/src/main/resources/META-INF/wsdl</wsdlDirectory>
-                            <wsdlFiles>
-                                <wsdlFile>${wsdl}.wsdl</wsdlFile>
-                            </wsdlFiles>
-                            <extension>true</extension>
-                            <packageName>org.w3._2009._02.ws_tra</packageName>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
     </build>
 
 </project>

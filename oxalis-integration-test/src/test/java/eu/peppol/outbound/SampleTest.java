@@ -34,7 +34,7 @@ public class SampleTest {
 
     @Test
     public void verifiesThatSimpleUnitTestsAreExecuted() throws Exception {
-
         log.info("Unit tests are being executed");
     }
+
 }

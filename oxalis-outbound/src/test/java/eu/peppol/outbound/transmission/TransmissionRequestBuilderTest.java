@@ -5,7 +5,6 @@ import com.google.inject.name.Named;
 import eu.peppol.BusDoxProtocol;
 import eu.peppol.PeppolStandardBusinessHeader;
 import eu.peppol.identifier.*;
-import eu.peppol.outbound.OxalisOutboundModule;
 import eu.peppol.outbound.guice.TestResourceModule;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -103,13 +102,6 @@ public class TransmissionRequestBuilderTest {
         assertEquals(builder.getEffectiveStandardBusinessHeader().getRecipientId(), WellKnownParticipant.DIFI, "Receiver has not been overridden");
         assertEquals(request.getPeppolStandardBusinessHeader().getRecipientId(), WellKnownParticipant.DIFI);
 
-    }
-
-    @Test(expectedExceptions = {IllegalStateException.class})
-    public void createTransmissionRequestWithStartAndSbdh() throws MalformedURLException {
-        transmissionRequestBuilder.overrideEndpointForStartProtocol(new URL("http://localhost:8443/bla/bla"));
-        transmissionRequestBuilder.payLoad(inputStreamWithSBDH);
-        transmissionRequestBuilder.build();
     }
 
     @Test
@@ -218,7 +210,7 @@ public class TransmissionRequestBuilderTest {
 
             TransmissionRequestBuilder requestBuilder = overridableTransmissionRequestBuilderCreator.createTansmissionRequestBuilderAllowingOverrides();
             requestBuilder.savePayLoad(inputStream);
-            requestBuilder.overrideEndpointForStartProtocol(new URL("https://ap-test.unit4.com/override/trick/to/preventSMPLookup"));
+            requestBuilder.overrideAs2Endpoint(new URL("https://ap-test.unit4.com/override/trick/to/preventSMPLookup"), "bla-bla");
             TransmissionRequest request = requestBuilder.build();
 
             PeppolStandardBusinessHeader facit = testFilesForIdentification.get(key);
